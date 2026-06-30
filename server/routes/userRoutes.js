@@ -29,5 +29,34 @@ router.get("/me", verifyToken, async (req, res) => {
 
   }
 });
+router.get("/", verifyToken, async (req, res) => {
+
+    try {
+
+        const [users] = await db.query(
+
+            "SELECT id, username, email FROM users WHERE id != ?",
+
+            [req.user.id]
+
+        );
+
+        res.json(users);
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        res.status(500).json({
+
+            message:"Server Error"
+
+        });
+
+    }
+
+});
 
 module.exports = router;
