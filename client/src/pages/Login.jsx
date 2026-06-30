@@ -1,29 +1,33 @@
 import { useState } from "react";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
     const handleLogin = async () => {
 
     try {
 
-        const response = await api.post(
-            "/auth/login",
-            {
-                email,
-                password
-            }
-        );
+        const response = await api.post("/auth/login", {
+            email,
+            password,
+        });
+
+        localStorage.setItem("token", response.data.token);
+
         localStorage.setItem(
-            "token",
-            response.data.token
+            "user",
+            JSON.stringify(response.data.user)
         );
-        console.log(localStorage.getItem("token"));
-        console.log("Token Saved");
-    }
-    catch (error) {
-        console.error(error);
+        navigate("/dashboard");
+        console.log("Login Successful");
+
+    } catch (error) {
+
+        console.error(error.response?.data || error.message);
+
     }
 
 };
