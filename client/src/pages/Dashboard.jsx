@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../services/api";
 import { Navigate, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
-
+import socket from "../services/socket";
 function Dashboard() {
 
     const token = localStorage.getItem("token");
@@ -18,6 +18,7 @@ function Dashboard() {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [message, setMessage] = useState("");
+    const [messages, setMessages] = useState([]);
 
     const logout = () => {
 
@@ -49,17 +50,71 @@ function Dashboard() {
         }
 
     };
-
     useEffect(() => {
 
-        fetchUsers();
+    fetchUsers();
 
     }, []);
-    const sendMessage = () => {
 
+   useEffect(() => {
+
+    socket.connect();
+    socket.emit("hello");
+    
+    socket.on("connect", () => {
+
+        console.log("Connected");
+
+    });
+    socket.on("welcome", (message) => {
     console.log(message);
+    });
+    
+    return () => {
 
-};
+        socket.disconnect();
+
+    };
+    
+
+    }, []);
+    useEffect(() => {
+
+    const handleReceiveMessage = (data) => {
+
+        console.log("Received:", data);
+
+        setMessages((previousMessages) => [
+            ...previousMessages,
+            data
+        ]);
+
+    };
+
+    socket.on("receive-message", handleReceiveMessage);
+
+    return () => {
+
+        socket.off("receive-message", handleReceiveMessage);
+
+    };
+
+}, []);
+    const sendMessage = () => {
+    console.log("Send button clicked");
+    console.log(socket.connected);
+
+    socket.emit("send-message", {
+
+        senderId: user.id,
+
+        receiverId: selectedUser.id,
+
+        text: message
+
+    });
+
+    };
 return (
 
     <div className="dashboard">
@@ -124,12 +179,23 @@ return (
                       </div>
 
                       <div className="messages">
+                        {
 
-                          <p>
+                            messages.map((msg,index)=>(
 
-                              No messages yet.
+                            <div key={index}>
 
-                          </p>
+                            <p>
+
+                                {msg.text}
+
+                            </p>
+
+                            </div>
+
+                            ))
+
+                        }
 
                       </div>
 
