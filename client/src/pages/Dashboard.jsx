@@ -66,6 +66,7 @@ function Dashboard() {
         console.log("Connected");
 
     });
+    socket.emit("register-user", user.id);
     socket.on("welcome", (message) => {
     console.log(message);
     });

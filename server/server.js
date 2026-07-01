@@ -14,16 +14,23 @@ const io = new Server(server, {
         methods: ["GET", "POST"],
     },
 }); 
+const onlineUsers = new Map();
 io.on("connection", (socket) => {
 
     console.log("A user connected");
+    socket.on("register-user", (userId) => {
+        onlineUsers.set(userId, socket.id);
+        console.log(onlineUsers);
+    });
     socket.on("send-message", (data) => {
-    console.log("Server received:");
-    console.log(data);
-    socket.emit("receive-message", data);
-
-});
-
+        console.log("Server received:");
+        console.log(data);
+        const receiverSocketId = onlineUsers.get(data.receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("receive-message", data);
+        }
+        socket.emit("receive-message", data);
+    });
 });
 app.use(cors());
 app.use(express.json());
