@@ -31,6 +31,17 @@ io.on("connection", (socket) => {
         }
         socket.emit("receive-message", data);
     });
+    socket.on("disconnect", () => {
+        for (const [userId, socketId] of onlineUsers) {
+            console.log(userId);
+            console.log(socketId);
+            if (socketId === socket.id) {
+                onlineUsers.delete(userId);
+                console.log(`User ${userId} removed`);
+            }
+        }
+        console.log("User disconnected");
+    });
 });
 app.use(cors());
 app.use(express.json());
