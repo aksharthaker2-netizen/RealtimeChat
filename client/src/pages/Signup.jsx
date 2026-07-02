@@ -1,83 +1,128 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
-function Signup() {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const navigate = useNavigate();
-    const handleSignup = async () => {
+import "./Signup.css";
 
-    try{
+function Signup(){
 
-        await api.post("/auth/signup",{
+    const [username,setUsername]=useState("");
 
-            username,
-            email,
-            password
+    const [email,setEmail]=useState("");
 
-        });
+    const [password,setPassword]=useState("");
 
-        alert("Signup Successful");
+    const navigate=useNavigate();
 
-        navigate("/login");
+    const handleSignup=async()=>{
 
-    }
+        try{
 
-    catch(error){
+            await api.post("/auth/signup",{
 
-        console.error(error.response?.data || error.message);
+                username,
 
-    }
+                email,
 
-};
+                password
 
-    return (
+            });
 
-        <div>
+            alert("Signup Successful");
 
-            <h1>Sign Up</h1>
+            navigate("/login");
 
-            <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-            />
+        }
 
-            <br /><br />
+        catch{
 
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
+            alert("Signup Failed");
 
-            <br /><br />
+        }
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
+    };
 
-            <br /><br />
+    return(
 
-           <button onClick={handleSignup}>
-            Sign Up
-            </button>
-            <p>
-                Already have an account?
-                <Link to="/login">
-                Login
-                </Link>
-            </p>
+        <div className="auth-page">
+
+            <div className="auth-card">
+
+                <h1>
+
+                    SecureChat
+
+                </h1>
+
+                <p>
+
+                    Create your account 🚀
+
+                </p>
+
+                <input
+
+                    type="text"
+
+                    placeholder="Username"
+
+                    value={username}
+
+                    onChange={(e)=>setUsername(e.target.value)}
+
+                />
+
+                <input
+
+                    type="email"
+
+                    placeholder="Email"
+
+                    value={email}
+
+                    onChange={(e)=>setEmail(e.target.value)}
+
+                />
+
+                <input
+
+                    type="password"
+
+                    placeholder="Password"
+
+                    value={password}
+
+                    onChange={(e)=>setPassword(e.target.value)}
+
+                />
+
+                <button
+
+                    onClick={handleSignup}
+
+                >
+
+                    Sign Up
+
+                </button>
+
+                <span>
+
+                    Already have an account?
+
+                    <Link to="/login">
+
+                        Login
+
+                    </Link>
+
+                </span>
+
+            </div>
+
         </div>
 
     );
+
 }
 
 export default Signup;

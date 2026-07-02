@@ -3,6 +3,7 @@ import api from "../services/api";
 import { Navigate, useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 import socket from "../services/socket";
+
 function Dashboard() {
 
     const token = localStorage.getItem("token");
@@ -13,7 +14,7 @@ function Dashboard() {
 
     const navigate = useNavigate();
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const currentUser = JSON.parse(localStorage.getItem("user"));
 
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -33,8 +34,6 @@ function Dashboard() {
 
         try {
 
-            const token = localStorage.getItem("token");
-
             const response = await api.get("/users", {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -45,128 +44,142 @@ function Dashboard() {
 
         } catch (error) {
 
-            console.error(error.response?.data || error.message);
+            console.log(error);
 
         }
 
     };
+
     const fetchMessages = async (receiverId) => {
 
-    try {
+        try {
 
-        const token = localStorage.getItem("token");
-
-        const response = await api.get(
-            `/messages/${receiverId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
+            const response = await api.get(
+                `/messages/${receiverId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
-            }
-        );
+            );
 
-        setMessages(response.data);
+            setMessages(response.data);
 
-    } catch (error) {
+        } catch (error) {
 
-        console.log(error);
+            console.log(error);
 
-    }
+        }
 
-};
+    };
+
     useEffect(() => {
 
-    fetchUsers();
+        fetchUsers();
 
     }, []);
 
-   useEffect(() => {
-
-    socket.connect();
-    socket.emit("hello");
-    
-    socket.on("connect", () => {
-
-        console.log("Connected");
-
-    });
-    socket.emit("register-user", user.id);
-    socket.on("welcome", (message) => {
-    console.log(message);
-    });
-    
-    return () => {
-
-        socket.disconnect();
-
-    };
-    
-
-    }, []);
     useEffect(() => {
 
-    const handleReceiveMessage = (data) => {
+        socket.connect();
 
-        console.log("Received:", data);
+        socket.emit("register-user", currentUser.id);
 
-        setMessages((previousMessages) => [
-            ...previousMessages,
-            data
-        ]);
+        const handleReceiveMessage = (data) => {
 
-    };
+            setMessages((previousMessages) => [
 
-    socket.on("receive-message", handleReceiveMessage);
+                ...previousMessages,
 
-    return () => {
+                data,
 
-        socket.off("receive-message", handleReceiveMessage);
+            ]);
 
-    };
+        };
 
-}, []);
+        socket.on("receive-message", handleReceiveMessage);
+
+        return () => {
+
+            socket.off("receive-message", handleReceiveMessage);
+
+            socket.disconnect();
+
+        };
+
+    }, []);
+
     const sendMessage = () => {
-    console.log("Send button clicked");
-    console.log(socket.connected);
 
-    socket.emit("send-message", {
+        if (!message.trim() || !selectedUser) return;
 
-        senderId: user.id,
+        socket.emit("send-message", {
 
-        receiverId: selectedUser.id,
+            senderId: currentUser.id,
 
-        text: message
+            receiverId: selectedUser.id,
 
-    });
+            text: message,
+
+        });
+
+        setMessage("");
 
     };
 return (
 
-    <div className="dashboard">
+<div className="dashboard">
 
-        <div className="sidebar">
+    <div className="sidebar">
 
-            <h2>Chats</h2>
+        <div className="logo">
+
+            <h1>💬 SecureChat</h1>
+
+        </div>
+
+        <div className="search-box">
 
             <input
                 type="text"
                 placeholder="Search users..."
             />
 
-            <div className="user-list">
+        </div>
 
-                {
+        <div className="user-list">
 
-                    users.map((user) => (
+            {
 
-                        <div
-                            key={user.id}
-                            className="user-card"
-                            onClick={() => {
-                                setSelectedUser(user);
-                                fetchMessages(user.id);
-                                }}
-                        >
+                users.map((user) => (
+
+                    <div
+
+                        key={user.id}
+
+                        className={
+                            selectedUser?.id === user.id
+                            ? "user-card active-user"
+                            : "user-card"
+                        }
+
+                        onClick={() => {
+
+                            setSelectedUser(user);
+
+                            fetchMessages(user.id);
+
+                        }}
+
+                    >
+
+                        <div className="avatar">
+
+                            {user.username.charAt(0).toUpperCase()}
+
+                        </div>
+
+                        <div className="user-info">
 
                             <h3>{user.username}</h3>
 
@@ -174,93 +187,174 @@ return (
 
                         </div>
 
-                    ))
+                    </div>
 
-                }
+                ))
 
-            </div>
-
-            <button onClick={logout}>
-
-                Logout
-
-            </button>
+            }
 
         </div>
 
-        <div className="chat-area">
+        <button
 
-            {
+            className="logout-btn"
 
-                selectedUser ? (
+            onClick={logout}
 
-                  <div className="chat-container">
+        >
 
-                      <div className="chat-header">
+            Logout
 
-                          <h2>
+        </button>
 
-                              {selectedUser.username}
+    </div>
 
-                          </h2>
+    <div className="chat-area">
 
-                      </div>
+        {
 
-                      <div className="messages">
+            selectedUser ? (
+
+                <>
+
+                    <div className="chat-header">
+
+                        <div className="chat-user">
+
+                            <div className="chat-avatar">
+
+                                {selectedUser.username.charAt(0).toUpperCase()}
+
+                            </div>
+
+                            <div>
+
+                                <h2>{selectedUser.username}</h2>
+
+                                <span className="status">
+
+                                    Online
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div className="messages">
+
                         {
 
                             messages.map((msg,index)=>(
 
-                            <div key={index}>
+                                <div
 
-                            <p>
+                                    key={index}
 
-                                {msg.message || msg.text}
+                                    className={
 
-                            </p>
-                            </div>
+                                        (msg.sender_id || msg.senderId) === currentUser.id
+
+                                        ?
+
+                                        "my-message"
+
+                                        :
+
+                                        "other-message"
+
+                                    }
+
+                                >
+
+                                    {msg.message || msg.text}
+
+                                </div>
 
                             ))
 
                         }
 
-                      </div>
+                    </div>
 
-                      <div className="message-input">
+                    <div className="message-input">
 
-                          <input
+                        <input
 
-                              type="text"
+                            type="text"
 
-                              placeholder="Type a message..."
+                            placeholder="Type your message..."
 
-                              value={message}
+                            value={message}
 
-                              onChange={(e)=>setMessage(e.target.value)}
+                            onChange={(e)=>setMessage(e.target.value)}
 
-                          />
+                            onKeyDown={(e)=>{
 
-                          <button
-                          onClick={sendMessage}
-                          >
-                          Send
-                          </button>
-                      </div>
-                  </div>
-              )
-              :
-              (
-              <h2>
-              Select a user to start chatting
-              </h2>
-              )
-          }
+                                if(e.key==="Enter"){
 
-        </div>
+                                    sendMessage();
+
+                                }
+
+                            }}
+
+                        />
+
+                        <button
+
+                            onClick={sendMessage}
+
+                        >
+
+                            ➤
+
+                        </button>
+
+                    </div>
+
+                </>
+
+            )
+
+            :
+
+            (
+
+                <div className="empty-chat">
+
+                    <h1>
+
+                        💬
+
+                    </h1>
+
+                    <h2>
+
+                        Welcome to SecureChat
+
+                    </h2>
+
+                    <p>
+
+                        Select a user to start chatting.
+
+                    </p>
+
+                </div>
+
+            )
+
+        }
 
     </div>
 
+</div>
+
 );
+
 }
 
 export default Dashboard;

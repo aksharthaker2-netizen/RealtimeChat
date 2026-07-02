@@ -1,65 +1,114 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
+import "./Login.css";
+
 function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
     const navigate = useNavigate();
+
     const handleLogin = async () => {
 
-    try {
+        try {
 
-        const response = await api.post("/auth/login", {
-            email,
-            password,
-        });
+            const response = await api.post("/auth/login", {
 
-        localStorage.setItem("token", response.data.token);
+                email,
 
-        localStorage.setItem(
-            "user",
-            JSON.stringify(response.data.user)
-        );
-        navigate("/dashboard");
-        console.log("Login Successful");
+                password
 
-    } catch (error) {
+            });
 
-        console.error(error.response?.data || error.message);
+            localStorage.setItem("token", response.data.token);
 
-    }
+            localStorage.setItem(
 
-};
+                "user",
 
-    return (
+                JSON.stringify(response.data.user)
 
-        <div>
+            );
 
-            <h1>Login</h1>
+            navigate("/dashboard");
 
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
+        }
 
-            <br /><br />
+        catch(error){
 
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
+            alert("Invalid Email or Password");
 
-            <br /><br />
+        }
 
-            <button
-                onClick={handleLogin}>
-                 Login
-            </button>
+    };
+
+    return(
+
+        <div className="auth-page">
+
+            <div className="auth-card">
+
+                <h1>
+
+                    SecureChat
+
+                </h1>
+
+                <p>
+
+                    Welcome Back 👋
+
+                </p>
+
+                <input
+
+                    type="email"
+
+                    placeholder="Email"
+
+                    value={email}
+
+                    onChange={(e)=>setEmail(e.target.value)}
+
+                />
+
+                <input
+
+                    type="password"
+
+                    placeholder="Password"
+
+                    value={password}
+
+                    onChange={(e)=>setPassword(e.target.value)}
+
+                />
+
+                <button
+
+                    onClick={handleLogin}
+
+                >
+
+                    Login
+
+                </button>
+
+                <span>
+
+                    Don't have an account?
+
+                    <Link to="/signup">
+
+                        Sign Up
+
+                    </Link>
+
+                </span>
+
+            </div>
 
         </div>
 
