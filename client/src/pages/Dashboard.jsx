@@ -50,6 +50,30 @@ function Dashboard() {
         }
 
     };
+    const fetchMessages = async (receiverId) => {
+
+    try {
+
+        const token = localStorage.getItem("token");
+
+        const response = await api.get(
+            `/messages/${receiverId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        setMessages(response.data);
+
+    } catch (error) {
+
+        console.log(error);
+
+    }
+
+};
     useEffect(() => {
 
     fetchUsers();
@@ -138,7 +162,10 @@ return (
                         <div
                             key={user.id}
                             className="user-card"
-                            onClick={() => setSelectedUser(user)}
+                            onClick={() => {
+                                setSelectedUser(user);
+                                fetchMessages(user.id);
+                                }}
                         >
 
                             <h3>{user.username}</h3>
@@ -188,10 +215,9 @@ return (
 
                             <p>
 
-                                {msg.text}
+                                {msg.message || msg.text}
 
                             </p>
-
                             </div>
 
                             ))
